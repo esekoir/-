@@ -1,0 +1,99 @@
+<?php
+/**
+ * Database Configuration
+ */
+
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'u752343995_caba');
+define('DB_USER', 'u752343995_dz');
+define('DB_PASS', 'Www.057890.dzd');
+define('DB_CHARSET', 'utf8mb4');
+
+// JWT Secret Key
+define('JWT_SECRET', 'caba_dz_secure_jwt_key_2024_x7k9m2p5q8r1');
+
+// Site URL
+define('SITE_URL', 'https://caba-dz.com');
+
+// CORS Settings
+define('ALLOWED_ORIGINS', [
+    'https://caba-dz.com',
+    'http://localhost:5173',
+    'http://localhost:3000'
+]);
+
+/**
+ * Get PDO Database Connection
+ */
+function getDB() {
+    static $pdo = null;
+    
+    if ($pdo === null) {
+        try {
+            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            die(json_encode(['error' => 'Database connection failed']));
+        }
+    }
+    
+    return $pdo;
+}
+
+/**
+ * Set CORS Headers
+ */
+function setCORSHeaders() {
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    
+    if (in_array($origin, ALLOWED_ORIGINS)) {
+        header("Access-Control-Allow-Origin: $origin");
+    }
+    
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Credentials: true");
+    header("Content-Type: application/json; charset=utf-8");
+    
+    // Handle preflight
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
+}
+
+/**
+ * Send JSON Response
+ */
+function jsonResponse($data, $statusCode = 200) {
+    http_response_code($statusCode);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+/**
+ * Get JSON Input
+ */
+function getJsonInput() {
+    $input = file_get_contents('php://input');
+    return json_decode($input, true) ?? [];
+}
+
+/**
+ * Generate UUID
+ */
+function generateUUID() {
+    return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0x0fff) | 0x4000,
+        mt_rand(0, 0x3fff) | 0x8000,
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
+}
+?>
